@@ -1,0 +1,11 @@
+[package]
+name = "moto-derive"
+version = "0.1.0"
+authors = ["Luminarys <postmaster@gensok.io>"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "0.11"
+quote = "0.3"

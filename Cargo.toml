@@ -1,0 +1,7 @@
+[package]
+name = "moto"
+version = "0.1.0"
+authors = ["Luminarys <postmaster@gensok.io>"]
+
+[dependencies]
+moto-derive = { path = "moto-derive" }
