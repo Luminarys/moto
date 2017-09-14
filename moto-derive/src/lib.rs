@@ -71,6 +71,7 @@ fn impl_store(ast: &syn::DeriveInput) -> quote::Tokens {
     let base_dispatch = quote! {
         fn dispatch(mut store: #store_name, action: #action_name) -> #store_name {
             #reducer_ast
+            // TODO: Invoke subscribers here.
             println!("Changed: {}", changed);
             store
         }

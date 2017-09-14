@@ -13,54 +13,55 @@ pub trait SubStore {
     fn dispatch(self, a: Self::A) -> Self;
 }
 
-#[derive(Debug)]
-enum Action {
-    Inc,
-    Dec,
-    Append(String),
-}
-
-#[derive(Debug, Default, Store)]
-#[moto(action = "Action")]
-#[moto(middleware = "foo, logger")]
-struct State {
-    #[moto(reducers = "counter")]
-    counter: i64,
-    #[moto(reducers = "appender")]
-    appender: String,
-}
-
-fn counter(state: i64, a: &Action) -> Result<i64, i64> {
-    match a {
-        &Action::Inc => Err(state + 1),
-        &Action::Dec => Err(state - 1),
-        _ => Ok(state),
-    }
-}
-
-fn appender(state: String, a: &Action) -> Result<String, String> {
-    match a {
-        &Action::Append(ref s) => Err(state + s),
-        _ => Ok(state),
-    }
-}
-
-fn foo<F: Fn(State, Action) -> State>(store: State, next: F, action: Action) -> State {
-    println!("Foo!");
-    next(store, action)
-}
-
-fn logger<F: Fn(State, Action) -> State>(store: State, next: F, action: Action) -> State {
-    println!("Dispatching {:?}", action);
-    let result = next(store, action);
-    println!("Next state {:?}", result);
-    result
-}
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[derive(Debug)]
+    enum Action {
+        Inc,
+        Dec,
+        Append(String),
+    }
+
+    #[derive(Debug, Default, Store)]
+    #[moto(action = "Action")]
+    #[moto(middleware = "foo, logger")]
+    struct State {
+        #[moto(reducers = "counter")]
+        counter: i64,
+        #[moto(reducers = "appender")]
+        appender: String,
+    }
+    
+    fn counter(state: i64, a: &Action) -> Result<i64, i64> {
+        match a {
+            &Action::Inc => Err(state + 1),
+            &Action::Dec => Err(state - 1),
+            _ => Ok(state),
+        }
+    }
+    
+    fn appender(state: String, a: &Action) -> Result<String, String> {
+        match a {
+            &Action::Append(ref s) => Err(state + s),
+            _ => Ok(state),
+        }
+    }
+    
+    fn foo<F: Fn(State, Action) -> State>(store: State, next: F, action: Action) -> State {
+        println!("Foo!");
+        next(store, action)
+    }
+    
+    fn logger<F: Fn(State, Action) -> State>(store: State, next: F, action: Action) -> State {
+        println!("Dispatching {:?}", action);
+        let result = next(store, action);
+        println!("Next state {:?}", result);
+        result
+    }
+
+
     #[test]
     fn it_works() {
         let s = State {
