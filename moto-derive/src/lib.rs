@@ -96,15 +96,21 @@ fn impl_reducer(ast: &syn::DeriveInput) -> quote::Tokens {
         }
     });
 
+    let dummy_const = syn::Ident::new(format!("_IMPL_REDUCER_FOR_{}", store_name));
     quote! {
-        impl Reducer for #store_name {
-            type Action = Action;
+        #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+        const #dummy_const: () = {
+            extern crate moto as _moto;
 
-            fn dispatch(&mut self, action: &Self::Action) -> bool {
-                #reducer_ast
-                changed
+            impl _moto::Reducer for #store_name {
+                type Action = Action;
+
+                fn dispatch(&mut self, action: &Self::Action) -> bool {
+                    #reducer_ast
+                    changed
+                }
             }
-        }
+        };
     }
 }
 
@@ -143,7 +149,7 @@ fn impl_middleware(ast: &syn::DeriveInput) -> quote::Tokens {
     }
 
     let base_dispatch = quote! {
-        fn dispatch<R: Reducer>(s: &mut Store<R>, a: R::Action) {
+        fn dispatch<R: _moto::Reducer>(s: &mut _moto::Store<R>, a: R::Action) {
             s.reduce(a);
         }
     };
@@ -155,7 +161,7 @@ fn impl_middleware(ast: &syn::DeriveInput) -> quote::Tokens {
         }
     };
     let r_bounds = r_bound_names.into_iter().fold(quote! {
-        R: Reducer<Action = A> +
+        R: _moto::Reducer<Action = A> +
     }, &bf);
 
     let a_bounds = a_bound_names.into_iter().fold(quote! {
@@ -169,20 +175,28 @@ fn impl_middleware(ast: &syn::DeriveInput) -> quote::Tokens {
         let iname = syn::Ident::from(name.clone());
         let func_name = syn::Ident::from(name.clone() + "_dispatch");
         (func_name.clone(), quote! {
-            fn #func_name<R, A>(store: &mut Store<R>, a: R::Action) where #r_bounds, #a_bounds  {
+            fn #func_name<R, A>(store: &mut _moto::Store<R>, a: R::Action) where #r_bounds, #a_bounds  {
                 #prev
                 #iname(store, #prev_name, a);
             }
         })
     });
 
-    quote! {
-        impl<R, A> Middleware<R> for #mw_name where #r_bounds, #a_bounds {
-            fn apply(store: &mut Store<R>, action: A) {
-                #middleware
+    let dummy_const = syn::Ident::new(format!("_IMPL_MIDDLEWARE_FOR_{}", middleware_name));
 
-                #middleware_name(store, action);
+    quote! {
+        #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+        const #dummy_const: () = {
+            extern crate moto as _moto;
+
+            impl<R, A> _moto::Middleware<R> for #mw_name where #r_bounds, #a_bounds {
+                fn apply(store: &mut _moto::Store<R>, action: A) {
+
+                    #middleware
+
+                    #middleware_name(store, action);
+                }
             }
-        }
+        };
     }
 }
