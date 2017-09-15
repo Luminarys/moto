@@ -2,6 +2,9 @@
 extern crate moto_derive;
 
 use std::mem;
+use std::result;
+
+pub type Result<T> = result::Result<T, T>;
 
 pub struct Store<R: Reducer> {
     root: R,

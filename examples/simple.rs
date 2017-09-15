@@ -38,9 +38,7 @@ fn main() {
     let mut s = moto::Store::new::<MW>(Thing {
         counter: 0,
         appender: "".to_owned(),
-        sub_state: SubThing {
-            toggle: false,
-        }
+        sub_state: SubThing { toggle: false },
     });
 
     s.subscribe(Sub);
